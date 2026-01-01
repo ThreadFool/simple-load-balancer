@@ -10,6 +10,10 @@ repositories {
 }
 
 dependencies {
+    implementation("io.netty:netty-handler:4.2.9.Final")
+    implementation("io.netty:netty-codec-http:4.2.9.Final")
+    implementation("io.netty:netty-transport:4.2.9.Final")
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
