@@ -14,7 +14,7 @@ public class Main
 
 		try
 		{
-			ServerBootstrap bootstrap = new ServerBootstrap().group(master, workers).channel(NioServerSocketChannel.class).childHandler(new FrontendHandler());
+			ServerBootstrap bootstrap = new ServerBootstrap().group(master, workers).channel(NioServerSocketChannel.class).childHandler(new FrontendInitializer());
 
 			bootstrap.bind(8080).sync().channel().closeFuture().sync();
 		}
