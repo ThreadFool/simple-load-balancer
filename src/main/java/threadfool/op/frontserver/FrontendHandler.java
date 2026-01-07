@@ -1,12 +1,14 @@
 package threadfool.op.frontserver;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
@@ -24,6 +26,20 @@ public class FrontendHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
 		Channel fronendChannel = channelHandlerContext.channel();
 
+		ByteBuf bodyCopy = channelHandlerContext.alloc().buffer();
+		bodyCopy.writeBytes(fullHttpRequest.content());
+
+		FullHttpRequest backendReq =
+				new DefaultFullHttpRequest(
+						fullHttpRequest.protocolVersion(),
+						fullHttpRequest.method(),
+						fullHttpRequest.uri(),
+						bodyCopy
+				);
+
+		backendReq.headers().setAll(fullHttpRequest.headers());
+		backendReq.headers().set(HttpHeaderNames.CONTENT_LENGTH, bodyCopy.readableBytes());
+
 		Bootstrap bootstrap = new Bootstrap();
 
 		bootstrap.group(fronendChannel.eventLoop()).channel(NioSocketChannel.class).handler(
@@ -31,7 +47,7 @@ public class FrontendHandler extends SimpleChannelInboundHandler<FullHttpRequest
 
 		bootstrap.connect("localhost", 9001).addListener((ChannelFuture f) -> {
 			if (f.isSuccess()) {
-				f.channel().writeAndFlush(fullHttpRequest);
+				f.channel().writeAndFlush(backendReq);
 			}
 		});
 	}
